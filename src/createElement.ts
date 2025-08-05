@@ -1,66 +1,6 @@
 // function dispatcher() {}
 
-import { Node } from "./renderComponentTree";
 import type { CreateElementProps } from "./types";
-
-let tree = {};
-
-function prepareSubTree(element: HTMLElement | Text, tag: string, props: any) {
-  const node = new Node(props, tag);
-  let subTree = {
-    parent: null,
-    element,
-    children: props.children,
-    node,
-  };
-
-  if (!element) return subTree;
-
-  if (props.children && Array.isArray(props.children)) {
-    if (element instanceof HTMLElement) {
-      props.children.forEach((child) => {
-        if (!child.element) {
-          element.append(
-            ...child.subTree.children?.map((child) => child.element)
-          );
-        } else {
-          element.append(child.element);
-        }
-      });
-      //   element.append(
-      //     ...props.children
-      //       .map((child) => {
-      //         if (!child.element) {
-      //           element.append(
-      //             ...child.subTree.children?.map((child) => child.element)
-      //           );
-      //           return null;
-      //         }
-      //         return child.element;
-      //       })
-      //       .filter((child) => child)
-      //   );
-    }
-
-    subTree = {
-      ...subTree,
-      children: subTree.children.map((child) => {
-        if (element) child.parent = element;
-        if (child?.subTree?.element === null) {
-          child.subTree.children = child.subTree.children?.map((child) => {
-            return {
-              ...child,
-              parent: element,
-            };
-          });
-        }
-        return child;
-      }),
-    };
-  }
-
-  return subTree;
-}
 
 export function createElement(tag: string, props: CreateElementProps) {
   if (tag === "text") {

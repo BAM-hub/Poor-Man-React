@@ -1,16 +1,5 @@
 import { createElement } from "./createElement";
 import { appContainer } from "./main";
-import type { CreateElementProps } from "./types";
-
-type TreeNode =
-  | {
-      tag: string;
-      innerText?: string | (() => any);
-      onClick?: (e: Event) => void;
-      children: TreeNode[];
-      className: string | (() => string) | undefined;
-    }
-  | (() => TreeNode);
 
 type VTreeType =
   | {
@@ -31,8 +20,6 @@ type PartialVTree = Omit<StripFunction<VTreeType>, "children"> & {
   children: PartialVTree[];
 };
 
-type ComponentTree = TreeNode;
-
 const generateHash = (value: string) => {
   let hash = 0;
   for (const char of value) {
@@ -42,33 +29,8 @@ const generateHash = (value: string) => {
   return hash;
 };
 
-export class Node {
-  id: number;
-  tag: string;
-  data: CreateElementProps;
-  element?: HTMLElement | Text;
-  // children: Node[] = [];
-  constructor(data: CreateElementProps, tag: string) {
-    this.data = data;
-    // this.parent = parent;
-    this.id = generateHash(JSON.stringify(data));
-    this.tag = tag;
-    this.data = {
-      ...this.data,
-      className:
-        typeof this.data.className === "function"
-          ? this.data.className()
-          : this.data.className,
-    };
-  }
-
-  addElement(element: HTMLElement | Text) {
-    this.element = element;
-  }
-}
-
-function createVTree(tree: ComponentTree): PartialVTree {
-  const treeObject = evaluate<ComponentTree>(tree);
+function createVTree(tree: VTreeType): PartialVTree {
+  const treeObject = evaluate(tree);
   let childObjects: PartialVTree["children"] = [];
 
   if (treeObject.children!.length) {
@@ -88,7 +50,7 @@ function createVTree(tree: ComponentTree): PartialVTree {
   };
 }
 
-export function render(compoenents: ComponentTree) {
+export function render(compoenents: VTreeType) {
   const root = appContainer;
   let vtree = createVTree(compoenents);
   const element = renderComponentTree(vtree);
