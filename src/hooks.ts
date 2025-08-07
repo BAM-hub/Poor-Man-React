@@ -1,4 +1,10 @@
 const stateMap = new WeakMap();
+const hooks = [];
+
+// type InProgress = {
+//   current: number;
+//   queue: Array<() => void>;
+// };
 
 function useState<T>(
   initialValue: T
@@ -6,14 +12,21 @@ function useState<T>(
   let state = initialValue;
   let subscribers: Array<(value: T) => void> = [];
 
+  const startEvent = new CustomEvent("hookStart", {
+    detail: {
+      initialValue,
+      state,
+    },
+  });
+
+  document.dispatchEvent(startEvent);
+
   const setState = (newState: T) => {
-    console.log("Setting new state:", newState);
     state = newState;
 
     // subscribers.forEach((subscriber) => {
     // subscriber(newState);
     // });
-    console.log("orgg", state);
 
     const event = new Event("stateChange");
     document.dispatchEvent(event);
@@ -21,7 +34,6 @@ function useState<T>(
 
   function bind(updater: any) {
     if (!updater) {
-      console.log("should return ", state);
       return state;
     }
 
@@ -29,6 +41,24 @@ function useState<T>(
 
     return initialValue;
   }
+
+  document.addEventListener(
+    "hookAssign",
+    (event: CustomEvent) => {
+      const { hookIndex, value } = event.detail;
+
+      if (hookIndex < hooks.length) {
+        hooks[hookIndex] = value;
+      } else {
+        hooks.push(value);
+      }
+
+      stateMap.set(hooks, state);
+    },
+    {
+      once: true,
+    }
+  );
 
   return [bind, setState];
 }

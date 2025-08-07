@@ -56,56 +56,71 @@ export const HomePage = () => {
           },
         ],
       },
-      // {
-      //   tag: "button",
-      //   // innerText: counter,
-      //   onClick: () => {
-      //     setTodos([
-      //       ...todos(),
-      //       {
-      //         completed: false,
-      //         title: "some title",
-      //       },
-      //     ]);
-      //     console.log(todos());
-      //   },
-      //   children: [
-      //     {
-      //       tag: "text",
-      //       innerText: "add todo",
-      //       children: [],
-      //     },
-      //   ],
-      // },
-      // ListRenderer({
-      //   data: todos,
-      //   renderItem: (todo, index) => ({
-      //     key: index,
-      //     tag: "div",
-      //     children: [
-      //       {
-      //         tag: "span",
-      //         children: [
-      //           {
-      //             tag: "text",
-      //             innerText: todo.title,
-      //             children: [],
-      //           },
-      //         ],
-      //       },
-      //       {
-      //         tag: "span",
-      //         children: [
-      //           {
-      //             tag: "text",
-      //             innerText: todo.completed ? "Completed" : "Not Completed",
-      //             children: [],
-      //           },
-      //         ],
-      //       },
-      //     ],
-      //   }),
-      // }),
+      {
+        tag: "button",
+        // innerText: counter,
+        onClick: () => {
+          setTodos([
+            ...todos(),
+            {
+              completed: false,
+              title: "some title",
+            },
+          ]);
+          console.log(todos());
+        },
+        children: [
+          {
+            tag: "text",
+            innerText: "add todo",
+            children: [],
+          },
+        ],
+      },
+      {
+        tag: "button",
+        // innerText: counter,
+        onClick: () => {
+          const newTodos = todos().slice(1);
+          setTodos([...newTodos]);
+        },
+        children: [
+          {
+            tag: "text",
+            innerText: "remove todo",
+            children: [],
+          },
+        ],
+      },
+      ListRenderer({
+        data: todos,
+        renderItem: (todo, index) => ({
+          key: index,
+          tag: "div",
+          children: [
+            {
+              tag: "span",
+              children: [
+                {
+                  tag: "text",
+                  innerText: todo.title,
+                  children: [],
+                },
+              ],
+            },
+            {
+              tag: "span",
+              children: [
+                {
+                  tag: "text",
+                  innerText: todo.completed ? "Completed" : "Not Completed",
+                  children: [],
+                },
+              ],
+            },
+          ],
+        }),
+      }),
     ],
   });
 };
@@ -151,7 +166,7 @@ function ListRenderer({
 }) {
   return () => {
     return {
-      tag: "Fragment",
+      tag: "div",
       children: data().map((item, key) => {
         const element = renderItem(item, key);
         return element;

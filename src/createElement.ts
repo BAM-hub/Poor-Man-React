@@ -7,7 +7,6 @@ export function createElement(tag: string, props: CreateElementProps) {
     const textNode = document.createTextNode(
       typeof props.innerText === "function"
         ? props.innerText((newValue: any) => {
-            console.log("Updating text node with new value:", newValue);
             textNode.nodeValue = newValue.toString();
           })
         : props.innerText
@@ -35,11 +34,6 @@ export function createElement(tag: string, props: CreateElementProps) {
   const element = document.createElement(tag);
   if (props.className) {
     if (typeof props.className === "function") {
-      console.log(
-        "isFunction resultinng classnaem",
-        props.className(),
-        "should exec"
-      );
       element.className = props.className();
     } else {
       element.className = props.className;
@@ -55,7 +49,6 @@ export function createElement(tag: string, props: CreateElementProps) {
   // add children here
   if (props.children && Array.isArray(props.children)) {
     if (element instanceof HTMLElement) {
-      console.log(props.children);
       element.append(...props.children);
       // props.children.forEach((child) => {
       //   if (!child) {

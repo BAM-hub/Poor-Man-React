@@ -39,8 +39,6 @@ function createVTree(tree: VTreeType): PartialVTree {
     });
   }
 
-  console.log(treeObject.innerText, evaluate(treeObject.innerText));
-
   return {
     tag: treeObject.tag,
     className: evaluate(treeObject.className),
@@ -69,7 +67,26 @@ function evaluate<T>(param: T): StripFunction<T> {
   return res as StripFunction<T>;
 }
 
-function lazyUpdate(tree: ResolvedVTree, vtree: ResolvedVTree): ResolvedVTree {
+function shalowCompare(obj1: any, obj2: any) {
+  if (Object.keys(obj1).length === Object.keys(obj2).length) return false;
+
+  return Object.keys(obj1).every(
+    (key) => ["children", "element"].includes(key) || obj1[key] === obj2[key]
+  );
+}
+
+function* zipLongest(a, b, fill = null) {
+  const len = Math.max(a.length, b.length);
+  for (let i = 0; i < len; i++) {
+    yield { a: a[i] ?? fill, b: b[i] ?? fill };
+  }
+}
+
+function lazyUpdate(
+  tree: ResolvedVTree,
+  vtree: ResolvedVTree,
+  parent: MixedElemnt
+): ResolvedVTree {
   if (
     tree.tag !== vtree.tag ||
     JSON.stringify(tree.className) !==
@@ -77,9 +94,14 @@ function lazyUpdate(tree: ResolvedVTree, vtree: ResolvedVTree): ResolvedVTree {
     JSON.stringify(tree.innerText) !== JSON.stringify(evaluate(vtree.innerText))
   ) {
     console.log("diffed");
+
+    if (!vtree.tag) {
+      tree.element.remove();
+      return null;
+    }
+
     // this changes the tree reference so the old element ref is lost
     const newSubtree = renderComponentTree(vtree);
-
     if (tree.element && newSubtree) {
       // handle Node replacement
       const parent = tree.element.parentElement;
@@ -92,14 +114,21 @@ function lazyUpdate(tree: ResolvedVTree, vtree: ResolvedVTree): ResolvedVTree {
         ...vtree,
         element: newSubtree,
       };
+    } else if (!tree.element) {
+      parent?.appendChild(newSubtree);
+      return {
+        ...vtree,
+        element: newSubtree,
+      };
     }
   }
 
-  const children = vtree.children.map((child, index) => {
-    const original = tree.children?.[index] ? tree.children[index] : null;
-    if (!original) return child;
-    return lazyUpdate(evaluate(original), child);
-  });
+  let children = [];
+
+  for (const pair of zipLongest(tree.children, vtree.children, {})) {
+    const newChild = lazyUpdate(pair.a, pair.b, tree.element);
+    if (newChild) children.push(newChild);
+  }
 
   return {
     ...tree,
@@ -119,6 +148,7 @@ export default function renderComponentTree(tree: PartialVTree): MixedElemnt {
     });
   }
 
+  // if(value.tag === 'Fragment') return children
   const { element } = createElement(value.tag, {
     className: evaluate(value.className),
     innerText: evaluate(value.innerText),
