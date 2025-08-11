@@ -10,7 +10,7 @@ router.addRoutes([
   {
     url: "/",
     component: () => {
-      HomePage();
+      return HomePage();
     },
   },
   {

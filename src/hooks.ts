@@ -1,5 +1,16 @@
 const stateMap = new WeakMap();
-const hooks = [];
+
+class HOOK_QUEUE {
+  queue = [];
+  clear() {
+    this.queue = [];
+  }
+  push(fn: () => void) {
+    this.queue.push(fn);
+  }
+}
+
+export const hookQueue = new HOOK_QUEUE();
 
 // type InProgress = {
 //   current: number;
@@ -11,56 +22,32 @@ function useState<T>(
 ): [(updater?: () => void) => T, (value: T) => void] {
   let state = initialValue;
   let subscribers: Array<(value: T) => void> = [];
+  const doHook = () => {
+    const setState = (newState: T) => {
+      state = newState;
 
-  const startEvent = new CustomEvent("hookStart", {
-    detail: {
-      initialValue,
-      state,
-    },
-  });
+      // subscribers.forEach((subscriber) => {
+      // subscriber(newState);
+      // });
+      const event = new Event("stateChange");
+      document.dispatchEvent(event);
+    };
 
-  document.dispatchEvent(startEvent);
-
-  const setState = (newState: T) => {
-    state = newState;
-
-    // subscribers.forEach((subscriber) => {
-    // subscriber(newState);
-    // });
-
-    const event = new Event("stateChange");
-    document.dispatchEvent(event);
-  };
-
-  function bind(updater: any) {
-    if (!updater) {
-      return state;
-    }
-
-    subscribers.push(updater);
-
-    return initialValue;
-  }
-
-  document.addEventListener(
-    "hookAssign",
-    (event: CustomEvent) => {
-      const { hookIndex, value } = event.detail;
-
-      if (hookIndex < hooks.length) {
-        hooks[hookIndex] = value;
-      } else {
-        hooks.push(value);
+    function bind(updater: any) {
+      if (!updater) {
+        return state;
       }
 
-      stateMap.set(hooks, state);
-    },
-    {
-      once: true,
-    }
-  );
+      subscribers.push(updater);
 
-  return [bind, setState];
+      return state;
+    }
+    return [bind, setState];
+  };
+
+  hookQueue.push(doHook);
+
+  return doHook();
 }
 
 function useEffect(

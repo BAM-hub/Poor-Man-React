@@ -1,4 +1,6 @@
+import { nanoid } from "nanoid";
 import { createElement } from "./createElement";
+import { hookQueue } from "./hooks";
 import { appContainer } from "./main";
 
 type VTreeType =
@@ -20,6 +22,19 @@ type PartialVTree = Omit<StripFunction<VTreeType>, "children"> & {
   children: PartialVTree[];
 };
 
+const hooks = [];
+
+document.addEventListener(
+  "hookStart",
+  (event) => {
+    const { initialValue, state, bind } = event.detail;
+    hooks.push(bind);
+  }
+  // {
+  //   once: true,
+  // }
+);
+
 const generateHash = (value: string) => {
   let hash = 0;
   for (const char of value) {
@@ -29,37 +44,71 @@ const generateHash = (value: string) => {
   return hash;
 };
 
-function createVTree(tree: VTreeType): PartialVTree {
-  const treeObject = evaluate(tree);
-  let childObjects: PartialVTree["children"] = [];
+const execQueue = [];
 
-  if (treeObject.children!.length) {
-    childObjects = treeObject.children!.map((child) => {
-      return createVTree(child);
-    });
+function createVTree(tree: VTreeType, parent: VTreeType): PartialVTree {
+  if (typeof tree === "function" && tree.name) {
+    const id = nanoid();
+    let placeholder = {
+      className: "",
+      tag: "div",
+      children: [],
+      id: `placeholder-${id}`,
+      builder: tree,
+    };
+
+    execQueue.push(placeholder);
+    return placeholder;
+  } else {
+    const treeObject = evaluate(tree);
+
+    let childObjects: PartialVTree["children"] = [];
+
+    const element = {
+      tag: treeObject.tag,
+      className: evaluate(treeObject.className),
+      children: childObjects,
+      innerText: evaluate(treeObject.innerText),
+      onClick: treeObject.onClick,
+    };
+
+    if (treeObject.children!.length) {
+      treeObject.children!.forEach((child) => {
+        childObjects.push(createVTree(child, element));
+      });
+    }
+
+    element.children = childObjects;
+
+    return element;
   }
+}
 
-  return {
-    tag: treeObject.tag,
-    className: evaluate(treeObject.className),
-    children: childObjects,
-    innerText: evaluate(treeObject.innerText),
-    onClick: treeObject.onClick,
-  };
+function runQueue() {
+  if (execQueue.length) {
+    const execItem = execQueue.shift();
+  }
 }
 
 export function render(compoenents: VTreeType) {
-  const root = appContainer;
+  console.log({ hookQueue });
+  console.log(compoenents);
   let vtree = createVTree(compoenents);
-  const element = renderComponentTree(vtree);
-  if (element instanceof HTMLElement) root?.appendChild(element);
-
+  console.log({ execQueue });
+  execQueue.forEach((item) => {
+    execQueue.shift();
+    // console.log("executing", item.builder.name
+    const newVTree = item.builder();
+    item.placeholder = newVTree;
+  });
+  console.log(vtree);
   document.addEventListener("stateChange", (event) => {
-    // const { element, vt } = renderComponentTree(compoenents);
     const newVT = createVTree(compoenents);
     console.log({ vtree, newVT });
     vtree = lazyUpdate(vtree, newVT);
   });
+
+  return vtree;
 }
 
 function evaluate<T>(param: T): StripFunction<T> {
@@ -139,6 +188,10 @@ function lazyUpdate(
 type MixedElemnt = HTMLElement | Text | null;
 
 export default function renderComponentTree(tree: PartialVTree): MixedElemnt {
+  if (typeof tree === "function") {
+    console.log("excuting a function");
+  }
+
   const value = evaluate(tree);
   let children: MixedElemnt[] = [];
 

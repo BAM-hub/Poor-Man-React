@@ -14,34 +14,12 @@ export const HomePage = () => {
   ]);
 
   const [active, setActive] = useState(false);
-  const [counter, setCounter] = useState(0);
 
   return render({
     tag: "div",
     className: "home-page",
     children: [
-      // Counter,
-      {
-        tag: "button",
-        onClick: () => setCounter(counter() + 1),
-        children: [
-          {
-            tag: "text",
-            innerText: counter,
-            children: [],
-          },
-          {
-            tag: "span",
-            children: [
-              {
-                tag: "text",
-                innerText: " Increment Counter",
-                children: [],
-              },
-            ],
-          },
-        ],
-      },
+      Counter,
       {
         className: () => (active() ? "active" : ""),
         tag: "button",
@@ -134,7 +112,7 @@ export const Counter = () => {
   //   };
   // }, [counter]);
 
-  return {
+  return render({
     tag: "button",
     onClick: () => setCounter(counter() + 1),
     children: [
@@ -154,7 +132,7 @@ export const Counter = () => {
         ],
       },
     ],
-  };
+  });
 };
 
 function ListRenderer({

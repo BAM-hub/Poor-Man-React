@@ -1,3 +1,5 @@
+import renderComponentTree from "./renderComponentTree";
+
 type Route = {
   url: string;
   component: any;
@@ -35,13 +37,18 @@ export class Router {
       console.error("No routes defined");
       return;
     }
+
     const route = this.routes.find((route) => route.url === url);
     if (route) {
       const appElement = document.querySelector<HTMLDivElement>("#app");
       if (appElement) {
-        appElement.innerHTML = "";
-        // console.log({ route }, route.component());
-        appElement.appendChild(route.component());
+        // appElement.innerHTML = "";
+        try {
+          const element = renderComponentTree(route.component());
+          appElement.appendChild(element);
+        } catch (error) {
+          console.error("Error rendering Route:", error);
+        }
       }
     } else {
       console.error(`Route not found for URL: ${url}`);
