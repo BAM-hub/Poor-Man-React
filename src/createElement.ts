@@ -1,5 +1,3 @@
-// function dispatcher() {}
-
 import type { CreateElementProps } from "./types";
 
 export function createElement(tag: string, props: CreateElementProps) {
@@ -50,16 +48,6 @@ export function createElement(tag: string, props: CreateElementProps) {
   if (props.children && Array.isArray(props.children)) {
     if (element instanceof HTMLElement) {
       element.append(...props.children);
-      // props.children.forEach((child) => {
-      //   if (!child) {
-      //     element
-      //       .append
-      //       // ...child.subTree.children?.map((child) => child.element)
-      //       ();
-      //   } else {
-      //     element.append(child);
-      //   }
-      // });
     }
   }
 

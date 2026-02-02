@@ -1,5 +1,6 @@
 import { useEffect, useState } from "./hooks";
 import { render } from "./renderComponentTree";
+import type { VTreeType } from "./types";
 
 export const HomePage = () => {
   const [todos, setTodos] = useState<{ title: string; completed: boolean }[]>([
@@ -105,12 +106,12 @@ export const HomePage = () => {
 
 export const Counter = () => {
   const [counter, setCounter] = useState(0);
-  // useEffect(() => {
-  //   console.log("effect", counter());
-  //   return () => {
-  //     console.log("cleanup effect");
-  //   };
-  // }, [counter]);
+  useEffect(() => {
+    console.log("effect", counter());
+    return () => {
+      console.log("cleanup effect");
+    };
+  }, [counter]);
 
   return render({
     tag: "button",
@@ -139,8 +140,8 @@ function ListRenderer({
   data,
   renderItem,
 }: {
-  data: any[];
-  renderItem: (item: any) => HTMLElement;
+  data: () => any[];
+  renderItem: (item: any, key: number) => VTreeType;
 }) {
   return () => {
     return {

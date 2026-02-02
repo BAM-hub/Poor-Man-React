@@ -45,7 +45,7 @@ export class Router {
         // appElement.innerHTML = "";
         try {
           const element = renderComponentTree(route.component());
-          appElement.appendChild(element);
+          if (element) appElement.appendChild(element);
         } catch (error) {
           console.error("Error rendering Route:", error);
         }

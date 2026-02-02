@@ -1,22 +1,3 @@
-const stateMap = new WeakMap();
-
-class HOOK_QUEUE {
-  queue = [];
-  clear() {
-    this.queue = [];
-  }
-  push(fn: () => void) {
-    this.queue.push(fn);
-  }
-}
-
-export const hookQueue = new HOOK_QUEUE();
-
-// type InProgress = {
-//   current: number;
-//   queue: Array<() => void>;
-// };
-
 function useState<T>(
   initialValue: T
 ): [(updater?: () => void) => T, (value: T) => void] {
@@ -26,9 +7,6 @@ function useState<T>(
     const setState = (newState: T) => {
       state = newState;
 
-      // subscribers.forEach((subscriber) => {
-      // subscriber(newState);
-      // });
       const event = new Event("stateChange");
       document.dispatchEvent(event);
     };
@@ -39,33 +17,42 @@ function useState<T>(
       }
 
       subscribers.push(updater);
-
       return state;
     }
     return [bind, setState];
   };
 
-  hookQueue.push(doHook);
-
   return doHook();
 }
+
+export const effectQueue: { doHook: () => void; dependencies: any[] }[] = [];
 
 function useEffect(
   effect: () => void | (() => void),
   dependencies: any[] = []
 ): void {
-  dependencies.forEach((dep) => {
-    dep(() => {
-      if (cleanup && typeof cleanup === "function") {
-        cleanup();
-      }
-      effect();
+  let didRun = false;
+  function doHook() {
+    dependencies.forEach((dep) => {
+      dep(() => {
+        if (cleanup && typeof cleanup === "function") {
+          cleanup();
+        }
+        effect();
+      });
     });
-  });
-  const cleanup = effect();
+    const cleanup = effect();
 
-  if (cleanup && typeof cleanup === "function") {
-    cleanup();
+    if (cleanup && typeof cleanup === "function") {
+      cleanup();
+    }
+  }
+
+  effectQueue.push({ doHook, dependencies });
+
+  if (!didRun) {
+    doHook();
+    didRun = true;
   }
 }
 
