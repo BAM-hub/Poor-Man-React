@@ -1,0 +1,36 @@
+import { createElement, useState } from "./lib/index.ts";
+
+const test = (props) => {
+  console.log("custom code in my ext", ",,ds");
+  const [number, setNumber] = useState(0)
+  return (
+    <div
+      aria-label="test"
+      aria-label="test2"
+      data-data="test2"
+    >
+      bashar
+      <h2>this is not the page header </h2>
+      <div className="outer-class">
+        <div className="inner-class">
+          <div className="some">
+            <p className="para">
+              hello <span>world</span>
+              <span>hello</span>
+            </p>
+          </div>
+        </div>
+      </div>
+      <p></p>
+      <div>wowwwww</div>
+      <section>
+        Lorem ipsum dolor sit amet consectetur, adipisicing elit. Adipisci
+        facere doloribus excepturi magnam error ducimus, at ipsum eum amet eius,
+        totam blanditiis optio voluptas beatae temporibus accusamus illum
+        dolorum natus.
+      </section>
+    </div>
+  );
+};
+
+export default test;
